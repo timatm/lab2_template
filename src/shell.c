@@ -13,17 +13,11 @@
 /**
  * @brief 
  * Redirect command's stdin and stdout to the specified file descriptor
- * If you want to implement ( < , > ), use "in_file" and "out_file" in the cmd structure
- * If you want to implement ( | ), use "in" and "out" in the arguments.
- * @param in 
- * The file descriptor where stdin should be redirected
- * Used by pipe so that two processes can communicate
- * If pipe is not used, in is "0" ( stdin ( fd[0]) )
- * @param out
- * The file descriptor where stdout should be redirected
- * Used by pipe so that two processes can communicate
- * If pipe is not used, out is "1" ( stdout ( fd[1]) )
- * @param cmd Command structure
+ * If you want to implement ( < , > ), use "in_file" and "out_file" included the cmd_node structure
+ * If you want to implement ( | ), use "in" and "out" included the cmd_node structure.
+ *
+ * @param p cmd_node structure
+ * 
  */
 void redirection(struct cmd_node *p){
 	int fd;
@@ -58,17 +52,8 @@ void redirection(struct cmd_node *p){
  * 
  * @note 
  * The external command is mainly divided into the following two steps:
- * 1. Create child process
- * 2. Call execute to " execute() " the corresponding executable file
- * @param in
- * The file descriptor where stdin should be redirected
- * Used by pipe so that two processes can communicate
- * If pipe is not used, in is stdin(fd 0)
- * @param out 
- * The file descriptor where stdout should be redirected
- * Used by pipe so that two processes can communicate
- * If pipe is not used, out is stdout(fd 1)
- * @param cmd Command structure
+ * 1. Call "fork()" to create child process
+ * 2. Call "execvp()" to execute the corresponding executable file
  * @param p cmd_node structure
  * @return int 
  * Return execution status
