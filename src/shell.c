@@ -25,15 +25,18 @@
  * If pipe is not used, out is "1" ( stdout ( fd[1]) )
  * @param cmd Command structure
  */
-void redirection(int in ,int out ,struct cmd *cmd){
+void redirection(int in ,int out ,struct cmd_node *p){
+	printf("in: %d , out: %d\n",in,out);
+	printf("p->out_file : %s\n",p->out_file);
+	printf("p->in_file : %s\n",p->in_file);
 	int fd;
 	if (in != 0) {
           	dup2(in, 0);
           	close(in);
 	} 
 	else {
-		if (cmd->in_file) {
-			fd = open(cmd->in_file, O_RDONLY);
+		if (p->in_file) {
+			fd = open(p->in_file, O_RDONLY);
 			dup2(fd, 0);
 			close(fd);
 		}
@@ -43,8 +46,8 @@ void redirection(int in ,int out ,struct cmd *cmd){
 		close(out);
 	} 
 	else {
-		if (cmd->out_file) {
-			fd = open(cmd->out_file, O_RDWR | O_CREAT, 0644);
+		if (p->out_file) {
+			fd = open(p->out_file, O_RDWR | O_CREAT, 0644);
 			dup2(fd, 1);
 			close(fd);
 		}
@@ -78,7 +81,7 @@ int spawn_proc(int in, int out, struct cmd *cmd, struct cmd_node *p)
   	pid_t pid;
   	int status;
   	if ((pid = fork()) == 0) { //child process
-		redirection(in,out,cmd);
+		redirection(in,out,p);
 		status = execvp(p->args[0], p->args);
     	if (status == -1){
 			perror("lsh");
@@ -126,25 +129,31 @@ void shell()
 {
 	while (1) {
 		printf(">>> $ ");
-		
 		char *buffer = read_line();
 		if (buffer == NULL)
 			continue;
 
 		struct cmd *cmd = split_line(buffer);
-
+		
 		int status = -1;
 		// only a single command
-		if(cmd->head->next == NULL){
+		struct cmd_node *temp = cmd->head;
+		
+		if(temp->next == NULL){
+			test_pipe_struct(temp);
 			status = searchBuiltInCommand(cmd);
 			if (status != -1){
-				int fd, in = dup(stdin), out = dup(stdout);
-				redirection(in,out,cmd);
-				status = execBuiltInCommand(status,cmd->head);
+				int in = dup(STDIN_FILENO), out = dup(STDOUT_FILENO);
+				if( in == -1 | out == -1)
+					perror("dup");
+				redirection(0,1,temp);
+				status = execBuiltInCommand(status,temp);
 
 				// recover shell stdin and stdout
-				if (cmd->in_file)  dup2(in, 0);
-				if (cmd->out_file) dup2(out, 1);
+				if (temp->in_file)  dup2(in, 0);
+				if (temp->out_file){
+					dup2(out, 1);
+				}
 				close(in);
 				close(out);
 			}

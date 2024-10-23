@@ -9,12 +9,14 @@
 struct cmd_node {
 	char **args;
 	int length;
+	char *in_file, *out_file;
+	int in,out;
 	struct cmd_node *next;
+	
 };
 
 struct cmd {
 	struct cmd_node *head;
-    char *in_file, *out_file;
 	int pipe_num;
 };
 

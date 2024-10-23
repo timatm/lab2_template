@@ -50,11 +50,13 @@ struct cmd *split_line(char *line)
 		new_cmd->head->args[i] = NULL;
     new_cmd->head->length = 0;
     new_cmd->head->next = NULL;
-    new_cmd->in_file = NULL;
-    new_cmd->out_file = NULL;
 	new_cmd->pipe_num = 0;
 
 	struct cmd_node *temp = new_cmd->head;
+	temp->in_file 	= NULL;
+	temp->out_file 	= NULL;
+	temp->in       	= 0;
+	temp->out 		= 1;
     char *token = strtok(line, " ");
     while (token != NULL) {
         if (token[0] == '|') {
@@ -68,10 +70,10 @@ struct cmd *split_line(char *line)
 			temp = new_pipe;
         } else if (token[0] == '<') {
 			token = strtok(NULL, " ");
-            new_cmd->in_file = token;
+            temp->in_file = token;
         } else if (token[0] == '>') {
 			token = strtok(NULL, " ");
-            new_cmd->out_file = token;
+            temp->out_file = token;
         } else {
 			temp->args[temp->length] = token;
 			temp->length++;
@@ -102,8 +104,6 @@ void test_cmd_struct(struct cmd *cmd)
 		temp = temp->next;
 		++pipe_count;
 	}
-	printf(" in: %s\n", cmd->in_file ? cmd->in_file : "none");
-	printf("out: %s\n", cmd->out_file ? cmd->out_file : "none");
 	printf("============ COMMAND INFO END ============\n");
 }
 
@@ -114,12 +114,12 @@ void test_cmd_struct(struct cmd *cmd)
  */
 void test_pipe_struct(struct cmd_node *temp){
 	printf("============ PIPE INFO ============\n");
-	while (temp != NULL) {
-		for (int i = 0; i < temp->length; ++i) {
-			printf("temp->args[%d] :%s ",i, temp->args[i]);
-		}
-		printf("\n");
-		temp = temp->next;
+	
+	for (int i = 0; i < temp->length; ++i) {
+		printf("temp->args[%d] :%s \n",i, temp->args[i]);
 	}
+	printf(" in-file: %s\n", temp->in_file ? temp->in_file : "none");
+	printf("out-file: %s\n", temp->out_file ? temp->out_file : "none");
+	
 	printf("============ PIPE INFO END ============\n");
 }
