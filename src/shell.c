@@ -25,14 +25,11 @@
  * If pipe is not used, out is "1" ( stdout ( fd[1]) )
  * @param cmd Command structure
  */
-void redirection(int in ,int out ,struct cmd_node *p){
-	printf("in: %d , out: %d\n",in,out);
-	printf("p->out_file : %s\n",p->out_file);
-	printf("p->in_file : %s\n",p->in_file);
+void redirection(struct cmd_node *p){
 	int fd;
-	if (in != 0) {
-          	dup2(in, 0);
-          	close(in);
+	if (p->in != 0) {
+          	dup2(p->in, 0);
+          	close(p->in);
 	} 
 	else {
 		if (p->in_file) {
@@ -41,9 +38,9 @@ void redirection(int in ,int out ,struct cmd_node *p){
 			close(fd);
 		}
 	}
-	if (out != 1) {
-		dup2(out, 1);
-		close(out);
+	if (p->out != 1) {
+		dup2(p->out, 1);
+		close(p->out);
 	} 
 	else {
 		if (p->out_file) {
@@ -76,12 +73,12 @@ void redirection(int in ,int out ,struct cmd_node *p){
  * @return int 
  * Return execution status
  */
-int spawn_proc(int in, int out, struct cmd *cmd, struct cmd_node *p)
+int spawn_proc(struct cmd_node *p)
 {
   	pid_t pid;
   	int status;
   	if ((pid = fork()) == 0) { //child process
-		redirection(in,out,p);
+		redirection(p);
 		status = execvp(p->args[0], p->args);
     	if (status == -1){
 			perror("lsh");
@@ -107,17 +104,21 @@ int spawn_proc(int in, int out, struct cmd *cmd, struct cmd_node *p)
  */
 int fork_cmd_node(struct cmd *cmd)
 {
-  	int in = 0, fd[2];
+  	int fd[2];
 	struct cmd_node *temp = cmd->head;
   	while (temp->next != NULL) {
       	pipe(fd);
-      	spawn_proc(in, fd[1], cmd, temp);
+		temp->out = fd[1];
+      	spawn_proc(temp);
       	close(fd[1]);
-      	in = fd[0];
+      	temp->next->in = fd[0];
+		test_pipe_struct(temp);
       	temp = temp->next;
   	}
-  	if (in != 0) {
-    	spawn_proc(in, 1, cmd, temp);
+  	if (temp->in != 0) {
+		temp->out = 1;
+		test_pipe_struct(temp);
+    	spawn_proc(temp);
     	return 1;
   	}
 	return 1;
@@ -145,7 +146,7 @@ void shell()
 				int in = dup(STDIN_FILENO), out = dup(STDOUT_FILENO);
 				if( in == -1 | out == -1)
 					perror("dup");
-				redirection(0,1,temp);
+				redirection(temp);
 				status = execBuiltInCommand(status,temp);
 
 				// recover shell stdin and stdout
@@ -158,7 +159,7 @@ void shell()
 			}
 			else{
 				//external command
-				status = spawn_proc(0, 1, cmd, cmd->head);
+				status = spawn_proc(cmd->head);
 			}
 		}
 		// There are multiple commands ( | )

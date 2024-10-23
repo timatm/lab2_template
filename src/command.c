@@ -120,6 +120,7 @@ void test_pipe_struct(struct cmd_node *temp){
 	}
 	printf(" in-file: %s\n", temp->in_file ? temp->in_file : "none");
 	printf("out-file: %s\n", temp->out_file ? temp->out_file : "none");
-	
+	printf(" in: %d\n", temp->in );
+	printf("out: %d\n", temp->out);
 	printf("============ PIPE INFO END ============\n");
 }
