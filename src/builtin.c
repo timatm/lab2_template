@@ -18,10 +18,10 @@
  * If command is built-in command return function number
  * If command is external command return -1 
  */
-int searchBuiltInCommand(struct cmd *cmd)
+int searchBuiltInCommand(struct cmd_node *cmd)
 {
 	for (int i = 0; i < num_builtins(); ++i){
-		if (strcmp(cmd->head->args[0], builtin_str[i]) == 0){
+		if (strcmp(cmd->args[0], builtin_str[i]) == 0){
 			return i;
 		}
 	}

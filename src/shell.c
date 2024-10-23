@@ -140,8 +140,7 @@ void shell()
 		struct cmd_node *temp = cmd->head;
 		
 		if(temp->next == NULL){
-			test_pipe_struct(temp);
-			status = searchBuiltInCommand(cmd);
+			status = searchBuiltInCommand(temp);
 			if (status != -1){
 				int in = dup(STDIN_FILENO), out = dup(STDOUT_FILENO);
 				if( in == -1 | out == -1)
